@@ -1,6 +1,6 @@
 subscribers:
   camera:
-    name: /camera/rgb/image_raw
+    name: /camera/rgb/test
     queue_size: 1
 
 actions:

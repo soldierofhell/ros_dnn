@@ -8,7 +8,7 @@ sensor_msgs/Image image
 # Result
 int16 id
 sensor_msgs/Image detection_image
-ros_dnn/Predictions predictions
+ros_dnn_msgs/Predictions predictions
 
 ---
 # Feedback
