@@ -52,6 +52,8 @@ namespace ros_dnn {
         NODELET_INFO_STREAM("Subscribed to topic " << camera_topic_name);
 
         /* Create prediction publisher */
+        pub_pred = nh.advertise<ros_dnn_msgs::Predictions>(predictions_topic_name, predictions_topic_qsize, predictions_topic_latch);
+        NODELET_INFO_STREAM("Advertising on topic " << predictions_topic_name);
 
         /* Create detection image publisher */
         pub_img = it.advertise(detection_image_topic_name, detection_image_topic_qsize, detection_image_topic_latch);

@@ -44,6 +44,7 @@ namespace ros_dnn {
             /* Publish/subscribe */
             image_transport::Subscriber sub_img;
             image_transport::Publisher pub_img;
+            ros::Publisher pub_pred;
 
             void camera_cb(const sensor_msgs::ImageConstPtr& msg);
     };
