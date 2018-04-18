@@ -19,18 +19,19 @@
 namespace ros_dnn {
     class Prediction {
         public:
-            Prediction(int class_id, int confidence, cv::Point x, cv::Point y)
-                : class_id(class_id),
+            Prediction(std::string label, int confidence, cv::Point pt1, cv::Point pt2)
+                : label(label),
                   confidence(confidence),
-                  x(x),
-                  y(y)
+                  pt1(pt1),
+                  pt2(pt2)
             {
             }
+
+            void draw(cv::Mat& frame) const;
         private:
-            int class_id;
+            std::string label;
             int confidence;
-            cv::Point x;
-            cv::Point y;
+            cv::Point pt1, pt2;
     };
 
     class ObjectDetectorNodelet: public nodelet::Nodelet {
@@ -54,7 +55,7 @@ namespace ros_dnn {
             int frame_width;
 
             void draw_predictions(int class_id, float conf, int left, int top, int right, int bottom, cv::Mat& frame);
-            std::vector<ros_dnn::Prediction> postprocess(cv::Mat& frame, const cv::Mat& out, cv::dnn::Net& net);
+            std::vector<ros_dnn::Prediction> get_predictions(cv::Mat& frame, const cv::Mat& out, cv::dnn::Net& net);
             cv::dnn::Net read_network(const std::string& _model, const std::string& _config, const std::string& _framework);
             
             /* Publish/subscribe */

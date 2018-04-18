@@ -6,6 +6,28 @@ PLUGINLIB_EXPORT_CLASS(ros_dnn::ObjectDetectorNodelet, nodelet::Nodelet);
 using namespace std;
 
 namespace ros_dnn {
+    void Prediction::draw(cv::Mat& frame) const
+    {
+        /* Draw class label */
+        int baseLine;
+        cv::Size labelSize = cv::getTextSize(label, cv::FONT_HERSHEY_SIMPLEX, 0.5, 1, &baseLine);
+        cv::rectangle(frame,
+                      cv::Point(pt1.x, pt1.y - labelSize.height),
+                      cv::Point(pt1.x + labelSize.width, pt1.y + baseLine),
+                      cv::Scalar::all(255),
+                      cv::FILLED);
+
+        cv::putText(frame,
+                    label,
+                    pt1,
+                    cv::FONT_HERSHEY_SIMPLEX,
+                    0.5,
+                    cv::Scalar());
+
+        /* Draw bounding box */
+        cv::rectangle(frame, pt1, pt2, cv::Scalar(0, 255, 0));
+    }
+
     void ObjectDetectorNodelet::onInit()
     {
         std::string net_model;
@@ -104,43 +126,7 @@ namespace ros_dnn {
         NODELET_INFO("Network initialization failed.");
     }
 
-    void ObjectDetectorNodelet::draw_predictions(int class_id, float conf, int left, int top, int right, int bottom, cv::Mat& frame)
-    {
-        std::string label = cv::format("%.2f", conf);
-        if (!class_labels.empty())
-        {
-            assert(class_id < (int)class_labels.size());
-            label = class_labels[class_id] + ": " + label;
-        }
-
-        NODELET_INFO("Label: %s, Confidence: %f", label.c_str(), conf);
-        NODELET_INFO("Coordinates: (%d, %d, %d, %d)", left, right, top, bottom);
-
-        /* Draw class label */
-        int baseLine;
-        cv::Size labelSize = cv::getTextSize(label, cv::FONT_HERSHEY_SIMPLEX, 0.5, 1, &baseLine);
-        top = max(top, labelSize.height);
-        cv::rectangle(frame,
-                      cv::Point(left, top - labelSize.height),
-                      cv::Point(left + labelSize.width, top + baseLine),
-                      cv::Scalar::all(255),
-                      cv::FILLED);
-
-        cv::putText(frame,
-                    label,
-                    cv::Point(left, top),
-                    cv::FONT_HERSHEY_SIMPLEX,
-                    0.5,
-                    cv::Scalar());
-
-        /* Draw bounding box */
-        cv::rectangle(frame,
-                      cv::Point(left, top),
-                      cv::Point(right, bottom),
-                      cv::Scalar(0, 255, 0));
-    }
-
-    std::vector<ros_dnn::Prediction> ObjectDetectorNodelet::postprocess(cv::Mat& frame, const cv::Mat& out, cv::dnn::Net& net)
+    std::vector<ros_dnn::Prediction> ObjectDetectorNodelet::get_predictions(cv::Mat& frame, const cv::Mat& out, cv::dnn::Net& net)
     {
         static std::vector<int> outLayers = net.getUnconnectedOutLayers();
         static std::string outLayerType = net.getLayer(outLayers[0])->type;
@@ -164,16 +150,22 @@ namespace ros_dnn {
                     int bottom = (int)data[i + 6];
                     int class_id = (int)(data[i + 1]) - 1;  // Skip 0th background class id.
 
+                    std::string label = cv::format("%.2f", confidence);
+                    if (!class_labels.empty())
+                    {
+                        assert(class_id < (int)class_labels.size());
+                        label = class_labels[class_id] + ": " + label;
+                    }
+
                     cv::Point top_left = cv::Point(left, top);
                     cv::Point bottom_right = cv::Point(right, bottom);
 
                     predictions.push_back(
                             ros_dnn::Prediction(
-                                class_id,
+                                label,
                                 confidence,
                                 cv::Point(left, top),
                                 cv::Point(right, bottom)));
-                    draw_predictions(class_id, confidence, left, top, right, bottom, frame);
                 }
             }
         }
@@ -193,13 +185,19 @@ namespace ros_dnn {
                     int bottom = (int)(data[i + 6] * frame.rows);
                     int class_id = (int)(data[i + 1]) - 1;  // Skip 0th background class id.
 
+                    std::string label = cv::format("%.2f", confidence);
+                    if (!class_labels.empty())
+                    {
+                        assert(class_id < (int)class_labels.size());
+                        label = class_labels[class_id] + ": " + label;
+                    }
+
                     predictions.push_back(
                             ros_dnn::Prediction(
-                                class_id,
+                                label,
                                 confidence,
                                 cv::Point(left, top),
                                 cv::Point(right, bottom)));
-                    draw_predictions(class_id, confidence, left, top, right, bottom, frame);
                 }
             }
         }
@@ -224,18 +222,26 @@ namespace ros_dnn {
                     int top = centerY - height / 2;
                     int class_id = classIdPoint.x;
 
+                    std::string label = cv::format("%.2f", confidence);
+                    if (!class_labels.empty())
+                    {
+                        assert(class_id < (int)class_labels.size());
+                        label = class_labels[class_id] + ": " + label;
+                    }
+
                     predictions.push_back(
                             ros_dnn::Prediction(
-                                class_id,
+                                label,
                                 confidence,
                                 cv::Point(left, top),
                                 cv::Point(left+width, top+height)));
-                    draw_predictions(class_id, (float)confidence, left, top, left + width, top + height, frame);
                 }
             }
         }
         else
             NODELET_ERROR("Unknown output layer type: %s", outLayerType.c_str());
+
+        return predictions;
     }
 
     void ObjectDetectorNodelet::camera_cb(const sensor_msgs::ImageConstPtr& msg)
@@ -272,7 +278,11 @@ namespace ros_dnn {
 
         out = net.forward();
 
-        postprocess(frame, out, net);
+        std::vector<ros_dnn::Prediction> predictions = get_predictions(frame, out, net);
+
+        for (const auto& prediction : predictions) {
+            prediction.draw(frame);
+        }
 
         out_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", frame).toImageMsg();
         pub_img.publish(out_msg);
