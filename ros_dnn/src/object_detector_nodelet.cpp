@@ -106,7 +106,6 @@ namespace ros_dnn {
 
     void ObjectDetectorNodelet::draw_predictions(int class_id, float conf, int left, int top, int right, int bottom, cv::Mat& frame)
     {
-
         std::string label = cv::format("%.2f", conf);
         if (!class_labels.empty())
         {
@@ -141,17 +140,19 @@ namespace ros_dnn {
                       cv::Scalar(0, 255, 0));
     }
 
-    void ObjectDetectorNodelet::postprocess(cv::Mat& frame, const cv::Mat& out, cv::dnn::Net& net)
+    std::vector<ros_dnn::Prediction> ObjectDetectorNodelet::postprocess(cv::Mat& frame, const cv::Mat& out, cv::dnn::Net& net)
     {
         static std::vector<int> outLayers = net.getUnconnectedOutLayers();
         static std::string outLayerType = net.getLayer(outLayers[0])->type;
+
+        std::vector<ros_dnn::Prediction> predictions;
 
         float* data = (float*)out.data;
         if (net.getLayer(0)->outputNameToIndex("im_info") != -1)  // Faster-RCNN or R-FCN
         {
             // Network produces output blob with a shape 1x1xNx7 where N is a number of
             // detections and an every detection is a vector of values
-            // [batchId, classId, confidence, left, top, right, bottom]
+            // [batchId, class_id, confidence, left, top, right, bottom]
             for (size_t i = 0; i < out.total(); i += 7)
             {
                 float confidence = data[i + 2];
@@ -161,8 +162,13 @@ namespace ros_dnn {
                     int top = (int)data[i + 4];
                     int right = (int)data[i + 5];
                     int bottom = (int)data[i + 6];
-                    int classId = (int)(data[i + 1]) - 1;  // Skip 0th background class id.
-                    draw_predictions(classId, confidence, left, top, right, bottom, frame);
+                    int class_id = (int)(data[i + 1]) - 1;  // Skip 0th background class id.
+
+                    top_left = cv::Point(left, top);
+                    bottom_right = cv::Point(right, bottom);
+
+                    predictions.push_back(ros_dnn::Prediction(class_id, confidence, top_left, bottom_right));
+                    draw_predictions(class_id, confidence, left, top, right, bottom, frame);
                 }
             }
         }
@@ -180,7 +186,12 @@ namespace ros_dnn {
                     int top = (int)(data[i + 4] * frame.rows);
                     int right = (int)(data[i + 5] * frame.cols);
                     int bottom = (int)(data[i + 6] * frame.rows);
-                    int classId = (int)(data[i + 1]) - 1;  // Skip 0th background class id.
+                    int class_id = (int)(data[i + 1]) - 1;  // Skip 0th background class id.
+
+                    top_left = cv::Point(left, top);
+                    bottom_right = cv::Point(right, bottom);
+
+                    predictions.push_back(ros_dnn::Prediction(class_id, confidence, top_left, bottom_right));
                     draw_predictions(classId, confidence, left, top, right, bottom, frame);
                 }
             }
@@ -198,13 +209,18 @@ namespace ros_dnn {
                 cv::minMaxLoc(confidences, 0, &confidence, 0, &classIdPoint);
                 if (confidence > conf_threshold)
                 {
-                    int classId = classIdPoint.x;
                     int centerX = (int)(data[0] * frame.cols);
                     int centerY = (int)(data[1] * frame.rows);
                     int width = (int)(data[2] * frame.cols);
                     int height = (int)(data[3] * frame.rows);
                     int left = centerX - width / 2;
                     int top = centerY - height / 2;
+                    int class_id = classIdPoint.x;
+
+                    top_left = cv::Point(left, top);
+                    bottom_right = cv::Point(right, bottom);
+
+                    predictions.push_back(ros_dnn::Prediction(class_id, confidence, top_left, bottom_right));
                     draw_predictions(classId, (float)confidence, left, top, left + width, top + height, frame);
                 }
             }
