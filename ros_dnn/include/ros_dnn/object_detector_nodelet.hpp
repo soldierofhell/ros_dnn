@@ -31,7 +31,7 @@ namespace ros_dnn {
             int confidence;
             cv::Point x;
             cv::Point y;
-    }
+    };
 
     class ObjectDetectorNodelet: public nodelet::Nodelet {
         public:

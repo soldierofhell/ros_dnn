@@ -164,10 +164,15 @@ namespace ros_dnn {
                     int bottom = (int)data[i + 6];
                     int class_id = (int)(data[i + 1]) - 1;  // Skip 0th background class id.
 
-                    top_left = cv::Point(left, top);
-                    bottom_right = cv::Point(right, bottom);
+                    cv::Point top_left = cv::Point(left, top);
+                    cv::Point bottom_right = cv::Point(right, bottom);
 
-                    predictions.push_back(ros_dnn::Prediction(class_id, confidence, top_left, bottom_right));
+                    predictions.push_back(
+                            ros_dnn::Prediction(
+                                class_id,
+                                confidence,
+                                cv::Point(left, top),
+                                cv::Point(right, bottom)));
                     draw_predictions(class_id, confidence, left, top, right, bottom, frame);
                 }
             }
@@ -188,11 +193,13 @@ namespace ros_dnn {
                     int bottom = (int)(data[i + 6] * frame.rows);
                     int class_id = (int)(data[i + 1]) - 1;  // Skip 0th background class id.
 
-                    top_left = cv::Point(left, top);
-                    bottom_right = cv::Point(right, bottom);
-
-                    predictions.push_back(ros_dnn::Prediction(class_id, confidence, top_left, bottom_right));
-                    draw_predictions(classId, confidence, left, top, right, bottom, frame);
+                    predictions.push_back(
+                            ros_dnn::Prediction(
+                                class_id,
+                                confidence,
+                                cv::Point(left, top),
+                                cv::Point(right, bottom)));
+                    draw_predictions(class_id, confidence, left, top, right, bottom, frame);
                 }
             }
         }
@@ -217,11 +224,13 @@ namespace ros_dnn {
                     int top = centerY - height / 2;
                     int class_id = classIdPoint.x;
 
-                    top_left = cv::Point(left, top);
-                    bottom_right = cv::Point(right, bottom);
-
-                    predictions.push_back(ros_dnn::Prediction(class_id, confidence, top_left, bottom_right));
-                    draw_predictions(classId, (float)confidence, left, top, left + width, top + height, frame);
+                    predictions.push_back(
+                            ros_dnn::Prediction(
+                                class_id,
+                                confidence,
+                                cv::Point(left, top),
+                                cv::Point(left+width, top+height)));
+                    draw_predictions(class_id, (float)confidence, left, top, left + width, top + height, frame);
                 }
             }
         }
