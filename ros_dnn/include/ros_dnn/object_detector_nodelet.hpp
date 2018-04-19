@@ -54,8 +54,8 @@ namespace ros_dnn {
             int frame_height;
             int frame_width;
 
-            void draw_predictions(int class_id, float conf, int left, int top, int right, int bottom, cv::Mat& frame);
-            std::vector<ros_dnn::Prediction> get_predictions(cv::Mat& frame, const cv::Mat& out, cv::dnn::Net& net);
+            cv::Mat draw_predictions(std::vector<ros_dnn::Prediction> predictions, cv::Mat& frame) const;
+            std::vector<ros_dnn::Prediction> get_predictions(cv::Mat& frame, const cv::Mat& out, cv::dnn::Net& net) const;
             cv::dnn::Net read_network(const std::string& _model, const std::string& _config, const std::string& _framework);
             
             /* Publish/subscribe */

@@ -126,12 +126,34 @@ namespace ros_dnn {
         NODELET_INFO("Network initialization failed.");
     }
 
-    std::vector<ros_dnn::Prediction> ObjectDetectorNodelet::get_predictions(cv::Mat& frame, const cv::Mat& out, cv::dnn::Net& net)
+    void ObjectDetectorNodelet::draw_predictions(cv::Mat& frame, std::vector<ros_dnn::Prediction> predictions) const
+    {
+        for (const auto& prediction : predictions) {
+            prediction.draw(frame);
+        }
+    }
+
+    std::vector<ros_dnn::Prediction> ObjectDetectorNodelet::get_predictions(cv::Mat& frame, cv::dnn::Net& net) const
     {
         static std::vector<int> outLayers = net.getUnconnectedOutLayers();
         static std::string outLayerType = net.getLayer(outLayers[0])->type;
 
+        cv::Mat blob, out;
         std::vector<ros_dnn::Prediction> predictions;
+
+        cv::Size frame_size(frame_width > 0 ? frame_width : frame.cols, frame_height > 0 ? frame_height : frame.rows);
+        blob = cv::dnn::blobFromImage(frame, 1 / 255.F, frame_size, true, false);
+        net.setInput(blob);
+
+        /* Faster-RCNN or R-FCN */
+        if (net.getLayer(0)->outputNameToIndex("im_info") != -1)
+        {
+            resize(frame, frame, frame_size);
+            cv::Mat imInfo = (cv::Mat_<float>(1, 3) << frame_size.height, frame_size.width, 1.6f);
+            net.setInput(imInfo, "im_info");
+        }
+
+        out = net.forward();
 
         float* data = (float*)out.data;
         if (net.getLayer(0)->outputNameToIndex("im_info") != -1)  // Faster-RCNN or R-FCN
@@ -246,39 +268,24 @@ namespace ros_dnn {
 
     void ObjectDetectorNodelet::camera_cb(const sensor_msgs::ImageConstPtr& msg)
     {
-        cv::Mat blob, frame, out;
-        std_msgs::Header frame_header;
-
-        cv_bridge::CvImagePtr pimage;
+        cv::Mat frame;
         sensor_msgs::ImagePtr out_msg;
 
-        NODELET_INFO("Received image");
+        if (pub_img.getNumSubscribers() == 0) {
+            return;
+        }
+
+        NODELET_INFO("Processing image");
 
         try
         {
-            frame = cv_bridge::toCvShare(msg, "bgr8")->image;
+            frame = cv_bridge::toCvCopy(msg, "bgr8")->image;
         } catch (cv_bridge::Exception& e) {
             NODELET_ERROR("cv_bridge exception: %s", e.what());
             return;
         }
 
-        frame_header = msg->header;
-
-        cv::Size frame_size(frame_width > 0 ? frame_width : frame.cols, frame_height > 0 ? frame_height : frame.rows);
-        blob = cv::dnn::blobFromImage(frame, 1 / 255.F, frame_size, true, false);
-        net.setInput(blob);
-
-        /* Faster-RCNN or R-FCN */
-        if (net.getLayer(0)->outputNameToIndex("im_info") != -1)
-        {
-            resize(frame, frame, frame_size);
-            cv::Mat imInfo = (cv::Mat_<float>(1, 3) << frame_size.height, frame_size.width, 1.6f);
-            net.setInput(imInfo, "im_info");
-        }
-
-        out = net.forward();
-
-        std::vector<ros_dnn::Prediction> predictions = get_predictions(frame, out, net);
+        std::vector<ros_dnn::Prediction> predictions = get_predictions(frame, net);
 
         for (const auto& prediction : predictions) {
             prediction.draw(frame);
@@ -286,7 +293,6 @@ namespace ros_dnn {
 
         out_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", frame).toImageMsg();
         pub_img.publish(out_msg);
-        cv::waitKey(1);
     }
 
     void ObjectDetectorNodelet::dyn_reconf_cb(ros_dnn::ObjectDetectorConfig &config, uint32_t level)
