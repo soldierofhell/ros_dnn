@@ -271,12 +271,14 @@ namespace ros_dnn {
         cv::Mat frame;
         sensor_msgs::ImagePtr out_msg;
 
+        /* Abort if no one is subscribed */
         if (pub_img.getNumSubscribers() == 0) {
             return;
         }
 
         NODELET_INFO("Processing image");
 
+        /* Transform image to OpenCV format */
         try
         {
             frame = cv_bridge::toCvCopy(msg, "bgr8")->image;
@@ -285,14 +287,15 @@ namespace ros_dnn {
             return;
         }
 
+        /* Get predictions and draw them on the frame */
         std::vector<ros_dnn::Prediction> predictions = get_predictions(frame, net);
+        draw_predictions(frame, predictions);
 
-        for (const auto& prediction : predictions) {
-            prediction.draw(frame);
-        }
-
+        /* Return the new image */
         out_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", frame).toImageMsg();
         pub_img.publish(out_msg);
+
+        /* Return the predictions */
     }
 
     void ObjectDetectorNodelet::dyn_reconf_cb(ros_dnn::ObjectDetectorConfig &config, uint32_t level)
