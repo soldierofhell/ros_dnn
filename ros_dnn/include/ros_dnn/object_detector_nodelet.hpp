@@ -19,11 +19,10 @@
 namespace ros_dnn {
     class Prediction {
         public:
-            Prediction(std::string label, int confidence, cv::Point pt1, cv::Point pt2)
+            Prediction(std::string label, int confidence, cv::Rect bounding_box)
                 : label(label),
                   confidence(confidence),
-                  pt1(pt1),
-                  pt2(pt2)
+                  bounding_box(bounding_box)
             {
             }
 
@@ -32,7 +31,7 @@ namespace ros_dnn {
         private:
             std::string label;
             int confidence;
-            cv::Point pt1, pt2;
+            cv::Rect bounding_box;
     };
 
     class ObjectDetectorNodelet: public nodelet::Nodelet {

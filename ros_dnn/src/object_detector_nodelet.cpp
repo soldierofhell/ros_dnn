@@ -186,8 +186,7 @@ namespace ros_dnn {
                             ros_dnn::Prediction(
                                 label,
                                 confidence,
-                                cv::Point(left, top),
-                                cv::Point(right, bottom)));
+                                cv::Rect(cv::Point(left, top), cv::Point(right, bottom))));
                 }
             }
         }
@@ -218,8 +217,7 @@ namespace ros_dnn {
                             ros_dnn::Prediction(
                                 label,
                                 confidence,
-                                cv::Point(left, top),
-                                cv::Point(right, bottom)));
+                                cv::Rect(cv::Point(left, top), cv::Point(right, bottom))));
                 }
             }
         }
@@ -255,8 +253,7 @@ namespace ros_dnn {
                             ros_dnn::Prediction(
                                 label,
                                 confidence,
-                                cv::Point(left, top),
-                                cv::Point(left+width, top+height)));
+                                cv::Rect(cv::Point(left, top), cv::Point(left+width, top+height))));
                 }
             }
         }
