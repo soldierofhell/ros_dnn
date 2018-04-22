@@ -26,8 +26,21 @@ namespace ros_dnn {
             {
             }
 
-            /* Draw a prediction on the frame */
+            /**
+             * \brief Convert the prediction to a ros_dnn_msgs::Prediction message.
+             */
+            ros_dnn_msgs::Prediction to_prediction_msg() const;
+
+            /**
+             * \brief Get the distance from the camera to the prediction.
+             */
+            double get_distance(cv::Mat& depth_map) const;
+
+            /**
+             * \brief Draw a prediction on the provided frame.
+             */
             void draw(cv::Mat& frame) const;
+
         private:
             std::string label;
             int confidence;

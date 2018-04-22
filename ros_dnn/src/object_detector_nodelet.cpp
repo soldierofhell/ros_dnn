@@ -6,6 +6,47 @@ PLUGINLIB_EXPORT_CLASS(ros_dnn::ObjectDetectorNodelet, nodelet::Nodelet);
 using namespace std;
 
 namespace ros_dnn {
+    ros_dnn_msgs::Prediction Prediction::to_prediction_msg() const
+    {
+        geometry_msgs::Point pt;
+        ros_dnn_msgs::Prediction msg;
+
+        msg.label = label
+        msg.probability = confidence
+        msg.distance = distance
+
+        /* Top left */
+        pt.x = pt1.x;
+        pt.y = pt1.y;
+        pt.z = 0;
+        msg.bounding_box.points.push_back(pt);
+
+        /* Top right */
+        pt.x = pt2.x;
+        pt.y = pt1.y;
+        msg.bounding_box.points.push_back(pt);
+
+        /* Bottom right */
+        pt.x = pt2.x;
+        pt.y = pt2.y;
+        msg.bounding_box.points.push_back(pt);
+
+        /* Bottom left */
+        pt.x = pt1.x;
+        pt.y = pt2.y;
+        msg.bounding_box.points.push_back(pt);
+
+        return prediction;
+    }
+
+    double Prediction::get_distance(cv::Mat& depth_map) const
+    {
+        cv::Mat image_roi = depth_map(bounding_box);
+        cv::Scalar mean_depth = cv::mean(image_roi);
+
+        return mean_depth[0];
+    }
+
     void Prediction::draw(cv::Mat& frame) const
     {
         /* Draw class label */
