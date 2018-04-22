@@ -20,6 +20,9 @@
   <node pkg="ros_dnn" ns="ros_dnn" name="object_detector_node" type="object_detector_node" output="screen" required="true">
       <param name="camera_topic_name"  value="/zed/left/image_raw_color" />
       <param name="camera_topic_qsize" value="1" />
+
+      <param name="depth_topic_name"  value="/zed/depth/depth_registered" />
+      <param name="depth_topic_qsize" value="1" />
     
       <param name="predictions_topic_name"  value="predictions" />
       <param name="predictions_topic_qsize" value="1" />
