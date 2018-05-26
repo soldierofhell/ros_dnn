@@ -8,7 +8,7 @@ using namespace std;
 namespace ros_dnn {
     ros_dnn_msgs::Prediction Prediction::to_prediction_msg() const
     {
-        geometry_msgs::Point pt;
+        geometry_msgs::Point32 pt;
         ros_dnn_msgs::Prediction msg;
 
         msg.label = label
@@ -53,8 +53,8 @@ namespace ros_dnn {
         int baseLine;
         cv::Size labelSize = cv::getTextSize(label, cv::FONT_HERSHEY_SIMPLEX, 0.5, 1, &baseLine);
         cv::rectangle(frame,
-                      cv::Point(pt1.x, pt1.y - labelSize.height),
-                      cv::Point(pt1.x + labelSize.width, pt1.y + baseLine),
+                      cv::Point32(pt1.x, pt1.y - labelSize.height),
+                      cv::Point32(pt1.x + labelSize.width, pt1.y + baseLine),
                       cv::Scalar::all(255),
                       cv::FILLED);
 
@@ -220,14 +220,14 @@ namespace ros_dnn {
                         label = class_labels[class_id] + ": " + label;
                     }
 
-                    cv::Point top_left = cv::Point(left, top);
-                    cv::Point bottom_right = cv::Point(right, bottom);
+                    cv::Point32 top_left = cv::Point32(left, top);
+                    cv::Point32 bottom_right = cv::Point32(right, bottom);
 
                     predictions.push_back(
                             ros_dnn::Prediction(
                                 label,
                                 confidence,
-                                cv::Rect(cv::Point(left, top), cv::Point(right, bottom))));
+                                cv::Rect(cv::Point32(left, top), cv::Point32(right, bottom))));
                 }
             }
         }
@@ -258,7 +258,7 @@ namespace ros_dnn {
                             ros_dnn::Prediction(
                                 label,
                                 confidence,
-                                cv::Rect(cv::Point(left, top), cv::Point(right, bottom))));
+                                cv::Rect(cv::Point32(left, top), cv::Point32(right, bottom))));
                 }
             }
         }
@@ -270,7 +270,7 @@ namespace ros_dnn {
             for (int i = 0; i < out.rows; ++i, data += out.cols)
             {
                 cv::Mat confidences = out.row(i).colRange(5, out.cols);
-                cv::Point classIdPoint;
+                cv::Point32 classIdPoint;
                 double confidence;
                 cv::minMaxLoc(confidences, 0, &confidence, 0, &classIdPoint);
                 if (confidence > conf_threshold)
@@ -294,7 +294,7 @@ namespace ros_dnn {
                             ros_dnn::Prediction(
                                 label,
                                 confidence,
-                                cv::Rect(cv::Point(left, top), cv::Point(left+width, top+height))));
+                                cv::Rect(cv::Point32(left, top), cv::Point32(left+width, top+height))));
                 }
             }
         }
