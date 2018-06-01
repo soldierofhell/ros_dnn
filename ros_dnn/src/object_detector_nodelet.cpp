@@ -11,32 +11,31 @@ namespace ros_dnn {
         geometry_msgs::Point32 pt;
         ros_dnn_msgs::Prediction msg;
 
-        msg.label = label
-        msg.probability = confidence
-        msg.distance = distance
+        msg.label = label;
+        msg.confidence = confidence;
+        msg.distance = 0;
 
         /* Top left */
-        pt.x = pt1.x;
-        pt.y = pt1.y;
-        pt.z = 0;
+        pt.x = bounding_box.tl().x;
+        pt.y = bounding_box.tl().y;
         msg.bounding_box.points.push_back(pt);
 
         /* Top right */
-        pt.x = pt2.x;
-        pt.y = pt1.y;
+        pt.x = bounding_box.br().x;
+        pt.y = bounding_box.tl().y;
         msg.bounding_box.points.push_back(pt);
 
         /* Bottom right */
-        pt.x = pt2.x;
-        pt.y = pt2.y;
+        pt.x = bounding_box.br().x;
+        pt.y = bounding_box.br().y;
         msg.bounding_box.points.push_back(pt);
 
         /* Bottom left */
-        pt.x = pt1.x;
-        pt.y = pt2.y;
+        pt.x = bounding_box.tl().x;
+        pt.y = bounding_box.br().y;
         msg.bounding_box.points.push_back(pt);
 
-        return prediction;
+        return msg;
     }
 
     double Prediction::get_distance(cv::Mat& depth_map) const
@@ -53,20 +52,20 @@ namespace ros_dnn {
         int baseLine;
         cv::Size labelSize = cv::getTextSize(label, cv::FONT_HERSHEY_SIMPLEX, 0.5, 1, &baseLine);
         cv::rectangle(frame,
-                      cv::Point32(pt1.x, pt1.y - labelSize.height),
-                      cv::Point32(pt1.x + labelSize.width, pt1.y + baseLine),
+                      cv::Point(bounding_box.tl().x, bounding_box.tl().y - labelSize.height),
+                      cv::Point(bounding_box.tl().x + labelSize.width, bounding_box.tl().y + baseLine),
                       cv::Scalar::all(255),
                       cv::FILLED);
 
         cv::putText(frame,
                     label,
-                    pt1,
+                    bounding_box.tl(),
                     cv::FONT_HERSHEY_SIMPLEX,
                     0.5,
                     cv::Scalar());
 
         /* Draw bounding box */
-        cv::rectangle(frame, pt1, pt2, cv::Scalar(0, 255, 0));
+        cv::rectangle(frame, bounding_box, cv::Scalar(0, 255, 0));
     }
 
     void ObjectDetectorNodelet::onInit()
@@ -242,14 +241,14 @@ namespace ros_dnn {
                         label = class_labels[class_id] + ": " + label;
                     }
 
-                    cv::Point32 top_left = cv::Point32(left, top);
-                    cv::Point32 bottom_right = cv::Point32(right, bottom);
+                    cv::Point top_left = cv::Point(left, top);
+                    cv::Point bottom_right = cv::Point(right, bottom);
 
                     predictions.push_back(
                             ros_dnn::Prediction(
                                 label,
                                 confidence,
-                                cv::Rect(cv::Point32(left, top), cv::Point32(right, bottom))));
+                                cv::Rect(cv::Point(left, top), cv::Point(right, bottom))));
                 }
             }
         }
@@ -280,7 +279,7 @@ namespace ros_dnn {
                             ros_dnn::Prediction(
                                 label,
                                 confidence,
-                                cv::Rect(cv::Point32(left, top), cv::Point32(right, bottom))));
+                                cv::Rect(cv::Point(left, top), cv::Point(right, bottom))));
                 }
             }
         }
@@ -292,7 +291,7 @@ namespace ros_dnn {
             for (int i = 0; i < out.rows; ++i, data += out.cols)
             {
                 cv::Mat confidences = out.row(i).colRange(5, out.cols);
-                cv::Point32 classIdPoint;
+                cv::Point classIdPoint;
                 double confidence;
                 cv::minMaxLoc(confidences, 0, &confidence, 0, &classIdPoint);
                 if (confidence > conf_threshold)
@@ -316,7 +315,7 @@ namespace ros_dnn {
                             ros_dnn::Prediction(
                                 label,
                                 confidence,
-                                cv::Rect(cv::Point32(left, top), cv::Point32(left+width, top+height))));
+                                cv::Rect(cv::Point(left, top), cv::Point(left+width, top+height))));
                 }
             }
         }
@@ -336,7 +335,11 @@ namespace ros_dnn {
             return;
         }
 
-        NODELET_INFO("Processing image");
+        ros::Time begin = msg->header.stamp;
+        ros::Time now = ros::Time::now();
+        ros::Duration diff = now - begin;
+
+        NODELET_INFO("%ld", diff.toNSec());
 
         /* Transform image to OpenCV format */
         try

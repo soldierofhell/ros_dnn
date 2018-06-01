@@ -69,10 +69,10 @@ namespace ros_dnn {
 
             /* Draw a list of predictions on an image. This adds a bounding box, a label and a confidence. */
             /* TODO: Add distance */
-            cv::Mat draw_predictions(std::vector<ros_dnn::Prediction> predictions, cv::Mat& frame) const;
+            void draw_predictions(cv::Mat& frame, std::vector<ros_dnn::Prediction> predictions) const;
 
             /* Pass an image through the neural net and return a list of predictions */
-            std::vector<ros_dnn::Prediction> get_predictions(cv::Mat& frame, const cv::Mat& out, cv::dnn::Net& net) const;
+            std::vector<ros_dnn::Prediction> get_predictions(cv::Mat& frame, cv::dnn::Net& net) const;
 
             /* Load a neural network */
             cv::dnn::Net read_network(const std::string& _model, const std::string& _config, const std::string& _framework);

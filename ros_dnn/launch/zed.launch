@@ -7,8 +7,8 @@
   <!-- Config and weights folder. -->
   <!-- <arg name="dnn_model"          default="$(find ros_dnn)/net/model"/> -->
   <!-- <arg name="dnn_config"         default="$(find ros_dnn)/net/config"/> -->
-  <arg name="dnn_model"          default="/home/nvidia/darknet/yolov2.weights"/>
-  <arg name="dnn_config"         default="/home/nvidia/darknet/cfg/yolov2.cfg"/>
+  <arg name="dnn_model"          default="/home/mortenmj/catkin_ws/src/cyborg/cyborg_detect/data/yolov3.weights"/>
+  <arg name="dnn_config"         default="/home/mortenmj/catkin_ws/src/cyborg/cyborg_detect/data/cfg/yolov3-tiny.cfg"/>
   <arg name="dnn_framework"      default="darknet"/>
   <arg name="dnn_frame_height"   default="608"/>
   <arg name="dnn_frame_width"    default="608"/>
@@ -18,11 +18,13 @@
 
   <!-- Start OpenCV DNN and ROS wrapper -->
   <node pkg="ros_dnn" ns="ros_dnn" name="object_detector_node" type="object_detector_node" output="screen" required="true">
-      <param name="camera_topic_name"  value="/zed/left/image_raw_color" />
+      <param name="camera_topic_name"  value="/cv_camera/image_raw" />
       <param name="camera_topic_qsize" value="1" />
 
+      <!--
       <param name="depth_topic_name"  value="/zed/depth/depth_registered" />
       <param name="depth_topic_qsize" value="1" />
+      -->
     
       <param name="predictions_topic_name"  value="predictions" />
       <param name="predictions_topic_qsize" value="1" />
