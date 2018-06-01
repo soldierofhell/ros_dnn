@@ -82,6 +82,7 @@ namespace ros_dnn {
             image_transport::Publisher pub_img;
             ros::Publisher pub_pred;
 
-            void camera_cb(const sensor_msgs::ImageConstPtr& msg);
+            void camera_cb(const sensor_msgs::ImageConstPtr& img, const sensor_msgs::ImageConstPtr& depth);
+            void camera_cb(const sensor_msgs::ImageConstPtr& img);
     };
 } /* Namespace ros_dnn */

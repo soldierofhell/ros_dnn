@@ -71,6 +71,8 @@ namespace ros_dnn {
 
     void ObjectDetectorNodelet::onInit()
     {
+        bool use_depth;
+
         std::string net_model;
         std::string net_config;
         std::string net_framework;
@@ -100,6 +102,9 @@ namespace ros_dnn {
         nh_ns.getParam("camera_topic_name", camera_topic_name);
         nh_ns.getParam("camera_topic_qsize", camera_topic_qsize);
 
+        use_depth = nh_ns.getParam("depth_topic_name", camera_topic_name);
+        nh_ns.getParam("depth_topic_qsize", camera_topic_qsize);
+
         nh_ns.getParam("predictions_topic_name", predictions_topic_name);
         nh_ns.getParam("predictions_topic_qsize", predictions_topic_qsize);
         nh_ns.getParam("predictions_topic_latch", predictions_topic_latch);
@@ -111,8 +116,25 @@ namespace ros_dnn {
         /* Create subscribers and subscribers */
         image_transport::ImageTransport it(nh);
 
-        sub_img = it.subscribe(camera_topic_name, camera_topic_qsize, &ObjectDetectorNodelet::camera_cb, this);
+        /* Subscribe to left color image */
+        image_transport::SubscriberFilter sub_rgb(it, camera_topic_name, camera_topic_qsize);
         NODELET_INFO_STREAM("Subscribed to topic " << camera_topic_name);
+
+        if (use_depth) {
+            /* Subscribe to depth map */
+            image_transport::SubscriberFilter sub_depth(it, depth_topic_name, depth_topic_qsize);
+            NODELET_INFO_STREAM("Subscribed to topic " << depth_topic_name);
+
+            typedef message_filters::sync_policies::ExactTime<sensor_msgs::Image, sensor_msgs::Image> ExactSyncPolicy;
+            const ExactSyncPolicy sync_policy(std::min(camera_topic_qsize, depth_topic_qsize));
+
+            message_filters::Synchronizer<ExactSyncPolicy> sync(sync_policy, sub_rgb, sub_depth);
+            sync.registerCallback(boost::bind(&camera_cb, _1, _2));
+
+        } else {
+            message_filters::Synchronizer<ExactSyncPolicy> sync(sync_policy, sub_rgb);
+            sync.registerCallback(boost::bind(&camera_cb, _1));
+        }
 
         /* Create prediction publisher */
         pub_pred = nh.advertise<ros_dnn_msgs::Predictions>(predictions_topic_name, predictions_topic_qsize, predictions_topic_latch);
@@ -304,7 +326,7 @@ namespace ros_dnn {
         return predictions;
     }
 
-    void ObjectDetectorNodelet::camera_cb(const sensor_msgs::ImageConstPtr& msg)
+    void ObjectDetectorNodelet::camera_cb(const sensor_msgs::ImageConstPtr& rgb)
     {
         cv::Mat frame;
         sensor_msgs::ImagePtr out_msg;
@@ -334,6 +356,11 @@ namespace ros_dnn {
         pub_img.publish(out_msg);
 
         /* Return the predictions */
+    }
+
+    void ObjectDetectorNodelet::camera_cb(const sensor_msgs::ImageConstPtr& rgb, const sensor_msgs::ImageConstPtr& depth)
+    {
+        NODELET_INFO("Processing image with depth");
     }
 
     void ObjectDetectorNodelet::dyn_reconf_cb(ros_dnn::ObjectDetectorConfig &config, uint32_t level)
