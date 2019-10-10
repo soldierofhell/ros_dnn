@@ -13,7 +13,7 @@ function(checkPackage package customMessage)
     endif()
 endfunction(checkPackage)
 
-find_package(OpenCV 3 COMPONENTS core dnn highgui imgproc)
+find_package(OpenCV 4 COMPONENTS core dnn highgui imgproc)
 checkPackage("OPENCV_CORE" "OpenCV core not found")
 checkPackage("OPENCV_DNN" "OpenCV dnn not found")
 checkPackage("OPENCV_HIGHGUI" "OpenCV highgui not found")
