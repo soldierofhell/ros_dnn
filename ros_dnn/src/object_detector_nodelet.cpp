@@ -344,7 +344,7 @@ namespace ros_dnn {
         /* Transform image to OpenCV format */
         try
         {
-            frame = cv_bridge::toCvCopy(msg, "bgr8")->image;
+            frame = cv_bridge::toCvCopy(rgb, "bgr8")->image;
         } catch (cv_bridge::Exception& e) {
             NODELET_ERROR("cv_bridge exception: %s", e.what());
             return;
