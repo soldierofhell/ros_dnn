@@ -116,18 +116,18 @@ namespace ros_dnn {
         image_transport::ImageTransport it(nh);
 
         /* Subscribe to left color image */
-        image_transport::SubscriberFilter sub_rgb(it, camera_topic_name, camera_topic_qsize);
-        NODELET_INFO_STREAM("Subscribed to topic " << camera_topic_name);
+        //image_transport::SubscriberFilter sub_rgb(it, camera_topic_name, camera_topic_qsize);
+        //NODELET_INFO_STREAM("Subscribed to topic " << camera_topic_name);
 
         if (use_depth) {
             /* Subscribe to depth map */
-            image_transport::SubscriberFilter sub_depth(it, depth_topic_name, depth_topic_qsize);
-            NODELET_INFO_STREAM("Subscribed to topic " << depth_topic_name);
+            //image_transport::SubscriberFilter sub_depth(it, depth_topic_name, depth_topic_qsize);
+            //NODELET_INFO_STREAM("Subscribed to topic " << depth_topic_name);
 
-            typedef message_filters::sync_policies::ExactTime<sensor_msgs::Image, sensor_msgs::Image> ExactSyncPolicy;
-            const ExactSyncPolicy sync_policy(std::min(camera_topic_qsize, depth_topic_qsize));
+            //typedef message_filters::sync_policies::ExactTime<sensor_msgs::Image, sensor_msgs::Image> ExactSyncPolicy;
+            //const ExactSyncPolicy sync_policy(std::min(camera_topic_qsize, depth_topic_qsize));
 
-            message_filters::Synchronizer<ExactSyncPolicy> sync(sync_policy, sub_rgb, sub_depth);
+            //message_filters::Synchronizer<ExactSyncPolicy> sync(sync_policy, sub_rgb, sub_depth);
             //sync.registerCallback(boost::bind(&camera_cb2, _1, _2));
             
             sub_img = it.subscribe(camera_topic_name, camera_topic_qsize, &ObjectDetectorNodelet::camera_cb, this);
