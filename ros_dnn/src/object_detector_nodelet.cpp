@@ -131,8 +131,10 @@ namespace ros_dnn {
             sync.registerCallback(boost::bind(&camera_cb, _1, _2));
 
         } else {
-            message_filters::Synchronizer<ExactSyncPolicy> sync(sync_policy, sub_rgb);
-            sync.registerCallback(boost::bind(&camera_cb, _1));
+            sub_img = it.subscribe(camera_topic_name, camera_topic_qsize, &ObjectDetectorNodelet::camera_cb, this);
+            
+            //message_filters::Synchronizer<ExactSyncPolicy> sync(sync_policy, sub_rgb);
+            //sync.registerCallback(boost::bind(&camera_cb, _1));
         }
 
         /* Create prediction publisher */
