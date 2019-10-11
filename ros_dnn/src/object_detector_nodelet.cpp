@@ -335,11 +335,11 @@ namespace ros_dnn {
             return;
         }
 
-        ros::Time begin = msg->header.stamp;
-        ros::Time now = ros::Time::now();
-        ros::Duration diff = now - begin;
+        //ros::Time begin = msg->header.stamp;
+        //ros::Time now = ros::Time::now();
+        //ros::Duration diff = now - begin;
 
-        NODELET_INFO("%ld", diff.toNSec());
+        //NODELET_INFO("%ld", diff.toNSec());
 
         /* Transform image to OpenCV format */
         try
