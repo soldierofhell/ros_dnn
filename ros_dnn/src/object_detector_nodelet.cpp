@@ -128,7 +128,7 @@ namespace ros_dnn {
             const ExactSyncPolicy sync_policy(std::min(camera_topic_qsize, depth_topic_qsize));
 
             message_filters::Synchronizer<ExactSyncPolicy> sync(sync_policy, sub_rgb, sub_depth);
-            sync.registerCallback(boost::bind(&camera_cb, _1, _2));
+            sync.registerCallback(boost::bind(&camera_cb2, _1, _2));
 
         } else {
             sub_img = it.subscribe(camera_topic_name, camera_topic_qsize, &ObjectDetectorNodelet::camera_cb, this);
@@ -363,7 +363,7 @@ namespace ros_dnn {
         /* Return the predictions */
     }
 
-    void ObjectDetectorNodelet::camera_cb(const sensor_msgs::ImageConstPtr& rgb, const sensor_msgs::ImageConstPtr& depth)
+    void ObjectDetectorNodelet::camera_cb2(const sensor_msgs::ImageConstPtr& rgb, const sensor_msgs::ImageConstPtr& depth)
     {
         NODELET_INFO("Processing image with depth");
     }
