@@ -12,11 +12,15 @@
   <arg name="dnn_framework"      default="darknet"/>
   <arg name="dnn_frame_height"   default="608"/>
   <arg name="dnn_frame_width"    default="608"/>
+  
+  <arg name="cv_file"    default=""/>
 
   <node pkg="nodelet" type="nodelet" name="standalone_nodelet" args="manager"/>
 
   <!-- Start CV Camera nodelet to export webcam image -->
-  <node pkg="nodelet" type="nodelet" name="cv_camera" args="load cv_camera/CvCameraNodelet standalone_nodelet"/>
+  <node pkg="nodelet" type="nodelet" name="cv_camera" args="load cv_camera/CvCameraNodelet standalone_nodelet">
+      <param name="file"  value="$(arg cv_file)" />
+  </node>
 
   <!-- Start OpenCV DNN and ROS wrapper -->
   <node pkg="nodelet" type="nodelet" name="object_detector" args="load ros_dnn/ObjectDetectorNodelet standalone_nodelet">
