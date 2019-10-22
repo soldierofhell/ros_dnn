@@ -1,5 +1,5 @@
 <?xml version="1.2"?>
-<package>
+<package format="2">
   <name>ros_dnn</name>
   <version>0.1.0</version>
   <description>ROS frontend to OpenCV DNN</description>
