@@ -66,7 +66,7 @@ link_directories(${OpenCV_LIBRARY_DIRS})
 ###############################################################################
 # EXECUTABLE
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -O3 -march=native -DBT_USE_DOUBLE_PRECISION")
 
 #add_definitions(-std=c++11)
 
