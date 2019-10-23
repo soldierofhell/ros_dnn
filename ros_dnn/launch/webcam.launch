@@ -23,7 +23,7 @@
   </node>
 
   <!-- Start OpenCV DNN and ROS wrapper -->
-  <node pkg="nodelet" type="nodelet" name="object_detector" args="load ros_dnn/ObjectDetectorNodelet standalone_nodelet">
+  <node pkg="nodelet" type="nodelet" name="object_detector" args="load ros_dnn/ObjectDetectorNodelet standalone_nodelet" output="screen">
       <param name="camera_topic_name"  value="/cv_camera/image_raw" />
       <param name="camera_topic_qsize" value="1" />
 
