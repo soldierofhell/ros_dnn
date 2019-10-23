@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<launch>
+  <!-- Console launch prefix -->
+  <arg name="launch_prefix" default=""/>
+
+  <arg name="cv_file"    default=""/>
+
+  <node pkg="nodelet" type="nodelet" name="standalone_nodelet" args="manager"/>
+
+  <!-- Start CV Camera nodelet to export webcam image -->
+  <node pkg="nodelet" type="nodelet" name="cv_camera" args="load cv_camera/CvCameraNodelet standalone_nodelet">
+      <param name="file"  value="$(arg cv_file)" />
+  </node>
+
+</launch>
