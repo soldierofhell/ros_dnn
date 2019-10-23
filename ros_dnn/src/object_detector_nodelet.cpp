@@ -70,6 +70,8 @@ namespace ros_dnn {
 
     void ObjectDetectorNodelet::onInit()
     {
+        NODELET_INFO("ObjectDetectorNodelet started");
+        
         bool use_depth;
 
         std::string net_model;
